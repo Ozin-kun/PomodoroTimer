@@ -48,9 +48,9 @@ Aplikasi web **Pomodoro Timer** dirancang untuk membantu pengguna meningkatkan p
   3. Klik **Simpan** untuk menerapkan perubahan.
 
 ### Daftar Tugas
-- **Tambah Tugas**: Ketik tugas di bidang input dan klik tombol "+".
+- **Tambah Tugas**: Ketik tugas di bagian input dan klik tombol "+".
 - **Tandai Tugas Selesai**: Centang kotak di samping tugas.
-- **Hapus Tugas**: Klik ikon tempat sampah (🗑) di samping tugas.
+- **Hapus Tugas**: Klik ikon (🗑) di samping tugas.
 - **Tugas Persisten**: Tugas disimpan dalam penyimpanan lokal dan tetap tersedia setelah halaman dimuat ulang.
 
 ### Pemutar Spotify
@@ -60,17 +60,17 @@ Aplikasi web **Pomodoro Timer** dirancang untuk membantu pengguna meningkatkan p
 
 ## Cara Kerja Aplikasi
 
-### Fungsi Timer
+### Fungsi Pomodoro Timer
 1. **Timer Belajar**:
    - Memulai hitungan mundur untuk durasi belajar yang telah dikonfigurasi.
    - Memperbarui total waktu belajar dan jumlah siklus saat sesi berakhir.
-   - Beralih ke timer istirahat dengan notifikasi SweetAlert2.
+   - Beralih ke timer istirahat dengan notifikasi yang menandai bahwa saat istirahat dimulai.
 
 2. **Timer Istirahat**:
    - Memulai hitungan mundur untuk durasi istirahat yang telah dikonfigurasi.
    - Memberi tahu pengguna saat istirahat selesai dan beralih kembali ke timer belajar.
 
-### Fungsi Daftar Tugas
+### Fungsi ToDo List
 1. Menambahkan tugas baru secara dinamis ke DOM.
 2. Menyimpan tugas dalam penyimpanan lokal untuk memastikan tugas tetap tersedia setelah halaman dimuat ulang.
 3. Mengelola penyelesaian dan penghapusan tugas dengan pembaruan waktu nyata.
@@ -78,7 +78,7 @@ Aplikasi web **Pomodoro Timer** dirancang untuk membantu pengguna meningkatkan p
 ### Notifikasi SweetAlert2
 - Notifikasi memberi tahu pengguna pada peristiwa penting, seperti akhir sesi belajar atau istirahat.
 - Gambar khusus digunakan untuk pengalaman pengguna yang lebih menarik.
-- Notifikasi otomatis ditutup setelah 3 detik.
+- Notifikasi otomatis ditutup setelah 5 detik.
 
 ---
 
@@ -91,7 +91,7 @@ Aplikasi web **Pomodoro Timer** dirancang untuk membantu pengguna meningkatkan p
 ---
 
 ## Kredit
-- **Pengembang**: [Nama Anda]
+- **Pengembang**: Rozin Gunagraha
 - **Ikon**: Font Awesome
 - **Musik**: Spotify
 - **Notifikasi**: SweetAlert2

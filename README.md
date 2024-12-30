@@ -47,7 +47,7 @@ Aplikasi web **Pomodoro Timer** dirancang untuk membantu pengguna meningkatkan p
   2. Masukkan durasi yang diinginkan untuk waktu belajar dan istirahat.
   3. Klik **Simpan** untuk menerapkan perubahan.
 
-### Daftar Tugas
+### ToDo List
 - **Tambah Tugas**: Ketik tugas di bagian input dan klik tombol "+".
 - **Tandai Tugas Selesai**: Centang kotak di samping tugas.
 - **Hapus Tugas**: Klik ikon (🗑) di samping tugas.

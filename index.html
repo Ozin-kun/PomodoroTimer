@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Timer</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    .tab {
+      display: none;
+    }
+    .active-tab {
+      display: block;
+    }
+    .custom-checkbox {
+      position: relative;
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+    }
+    .custom-checkbox input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }  
+    .checkmark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 24px;
+      width: 24px;
+      background-color: #eee;
+      border-radius: 4px;
+    }  
+    .custom-checkbox input:checked ~ .checkmark {
+      background-color: #4caf50;
+    }  
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }  
+    .custom-checkbox input:checked ~ .checkmark:after {
+      display: block;
+    }  
+    .custom-checkbox .checkmark:after {
+      left: 8px;
+      top: 4px;
+      width: 8px;
+      height: 16px;
+      border: solid white;
+      border-width: 0 4px 4px 0;
+      transform: rotate(45deg);
+    }
+  </style>
+</head>
+<body class="bg-blue-50 text-gray-800 font-cartoon p-8">
+  <div class="text-center mb-8">
+    <h1 class="text-5xl font-bold text-yellow-600 mb-4 animate-bounce">
+      <i class="fas fa-clock"></i> Pomodoro Timer
+    </h1>
+    <p class="text-lg text-gray-600">Boost your productivity with the Pomodoro Technique</p>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex-1">
+      <div id="study-tab" class="tab active-tab p-6 bg-white shadow-lg rounded-lg border-4 border-yellow-400 mb-6">
+        <h2 class="text-2xl font-bold mb-4 text-yellow-600 text-center">Study Time</h2>
+        <p id="study-timer" class="text-5xl font-mono text-yellow-600 text-center">25:00</p>
+        <div class="mt-6 text-center">
+          <button id="study-start" class="bg-yellow-400 text-white px-6 py-2 rounded-lg shadow hover:bg-yellow-500 transition"><i class="fas fa-play"></i></button>
+          <button id="study-pause" class="bg-yellow-400 text-white px-6 py-2 rounded-lg shadow hover:bg-yellow-500 transition hidden"><i class="fas fa-pause"></i></button>
+          <button id="study-reset" class="bg-red-400 text-white px-6 py-2 rounded-lg shadow hover:bg-red-500 transition hidden"><i class="fas fa-redo"></i></button>
+          <button id="settings" class="bg-blue-400 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-500 transition"><i class="fas fa-cog"></i></button>
+        </div>
+        <div class="mt-4 text-center">
+          <p id="study-details" class="text-lg text-yellow-700">Total Study Time: 0 minutes | Cycles Completed: 0</p>
+        </div>
+      </div>
+
+      <div id="break-tab" class="tab p-6 bg-white shadow-lg rounded-lg border-4 border-green-400 mb-6">
+        <h2 class="text-2xl font-bold mb-4 text-green-600 text-center">Break Time</h2>
+        <p id="break-timer" class="text-5xl font-mono text-green-600 text-center">5:00</p>
+        <div class="mt-6 text-center">
+          <button id="break-pause" class="bg-green-400 text-white px-6 py-2 rounded-lg shadow hover:bg-green-500 transition"><i class="fas fa-pause"></i></button>
+          <button id="break-reset" class="bg-red-400 text-white px-6 py-2 rounded-lg shadow hover:bg-red-500 transition"><i class="fas fa-redo"></i></button>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <div class="p-6 bg-white shadow-lg rounded-lg border-4 border-blue-400 mb-6">
+          <h2 class="text-2xl font-bold mb-4 text-center">To-Do List</h2>
+          <div class="flex items-center mb-4">
+            <input id="taskInput" type="text" placeholder="Enter a task" class="flex-grow p-3 border border-gray-300 rounded-lg shadow focus:outline-none focus:ring focus:ring-blue-200" />
+            <button id="addTaskBtn" class="ml-2 bg-blue-400 text-white px-5 py-3 rounded-lg shadow hover:bg-blue-500 transition">+</button>
+          </div>
+          <p id="emptyMessage" class="text-gray-500 italic text-center">No tasks yet. Add some!</p>
+          <ul id="taskList" class="list-none space-y-4">            
+          </ul>
+        </div>        
+      </div>
+    </div>
+
+    <div class="flex-1">
+      <!-- Spotify -->
+      <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/61VoDF66TGE7plFip6yXaV?utm_source=generator" width="100%" height="485" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      let studyTime = 25 * 60; // in seconds
+      let breakTime = 5 * 60; // in seconds
+      let studyInterval, breakInterval;
+      let totalStudyTime = 0; // in minutes
+      let cycleCount = 0;
+      let isPaused = false;
+
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${minutes}:${secs}`;
+      }
+
+      function startTimer(duration, display, callback, isStudyTimer = false) {
+        let timer = duration;
+        return setInterval(function () {
+          if (!isPaused) {
+            display.text(formatTime(timer));
+            if (--timer < 0) {
+              clearInterval(this);
+              callback();
+            } else if (isStudyTimer){
+              totalStudyTime += 1 / 60;
+              updateStudyDetails();
+            }
+          }
+        }, 1000);
+      }
+
+      function resetTimer(interval, display, newTime) {
+        clearInterval(interval);
+        display.text(formatTime(newTime));
+      }
+
+      function updateStudyDetails() {
+        $('#study-details').text(`Total Study Time: ${Math.floor(totalStudyTime)} minutes | Cycles Completed: ${cycleCount}`);
+      }
+
+      $('#study-start').click(function () {
+        $(this).hide();
+        $('#study-pause').show();
+        $('#study-reset').show();
+        isPaused = false;
+
+        studyInterval = startTimer(studyTime, $('#study-timer'), function () {
+          //totalStudyTime += studyTime / 60;
+          cycleCount++;
+          updateStudyDetails();
+          Swal.fire({
+            title: 'Waktu Belajar Selesai!',
+            text: 'Waktunya istirahat sejenak',
+            imageUrl: './tidur.png',
+            imageWidth: 200,
+            imageHeight: 200,
+            timer: 5000,
+          });
+          resetTimer(studyInterval, $('#study-timer'), studyTime);
+          $('#study-tab').removeClass('active-tab');
+          $('#break-tab').addClass('active-tab');
+          startBreak();
+        }, true);
+      });
+
+      $('#study-pause').click(function () {
+        isPaused = !isPaused;
+        //$(this).text(isPaused ? 'Resume' : 'Pause');
+        $(this).html(isPaused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>');
+      });
+
+      $('#study-reset').click(function () {
+        resetTimer(studyInterval, $('#study-timer'), studyTime);
+        totalStudyTime = 0;
+        cycleCount = 0;
+        updateStudyDetails();
+        $('#study-start').show();
+        $('#study-pause').hide();
+        $('#study-reset').hide();
+        isPaused = false;
+        //$('#study-pause').text('Pause');
+        $('#study-pause').html('<i class="fas fa-pause"></i>');
+      });
+
+      function startBreak() {
+        Swal.fire({
+          title: 'Waktu Belajar Selesai!',
+          text: 'Waktunya istirahat sejenak',
+          imageUrl: './tidur.png',
+          imageWidth: 200,
+          imageHeight: 200,
+          timer: 5000,
+        });
+        isPaused = false;
+        isStudyTimer = false;
+
+        breakInterval = startTimer(breakTime, $('#break-timer'), function () {
+          Swal.fire({
+            title: 'Waktu Istirahat Selesai!',
+            text: 'Waktunya Belajar Kembali',
+            imageUrl: './belajar.jpg',
+            imageWidth: 300,
+            imageHeight: 200,
+            timer: 5000,
+          });
+          resetTimer(breakInterval, $('#break-timer'), breakTime);
+          $('#break-tab').removeClass('active-tab');
+          $('#study-tab').addClass('active-tab');
+          $('#study-start').click(); // Automatically restart study timer
+        });
+      }
+
+      $('#break-pause').click(function () {
+        isPaused = !isPaused;
+        $(this).html(isPaused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>');
+      });
+
+      $('#break-reset').click(function () {
+        resetTimer(breakInterval, $('#break-timer'), breakTime);
+        totalStudyTime = 0;
+        cycleCount = 0;
+        updateStudyDetails();
+        $('#break-tab').removeClass('active-tab');
+        $('#study-tab').addClass('active-tab');
+        $('#study-start').show();
+        $('#study-pause').hide();
+        $('#study-reset').hide();
+        isPaused = false;
+        //$('#break-pause').text('Pause');
+        $('#break-pause').html('<i class="fas fa-pause"></i>');
+      });
+
+      $('#settings').click(function () {
+        Swal.fire({
+          title: 'Set Timer',
+          html: `
+            <label for="study">Study Time (minutes):</label>
+            <input id="study" type="number" min="1" value="${studyTime / 60}" class="w-full p-2 border border-gray-300 rounded mt-2"/><br><br>
+            <label for="break">Break Time (minutes):</label>
+            <input id="break" type="number" min="1" value="${breakTime / 60}" class="w-full p-2 border border-gray-300 rounded mt-2"/>
+          `,
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-save"></i> Save',
+          cancelBUttontext: 'Cancel',
+          preConfirm: () => {
+            const study = parseInt(document.getElementById('study').value);
+            const breakVal = parseInt(document.getElementById('break').value);
+            if (isNaN(study) || isNaN(breakVal)) {
+              Swal.showValidationMessage('Please enter valid numbers.');
+              return false;
+            }
+            return { study, breakVal };
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            studyTime = result.value.study * 60;
+            breakTime = result.value.breakVal * 60;
+            $('#study-timer').text(formatTime(studyTime));
+            $('#break-timer').text(formatTime(breakTime));
+            resetTimer(studyInterval, $('#study-timer'), studyTime);
+            $('#study-start').show();
+            $('#study-pause').hide();
+            $('#study-reset').hide();
+            //$('#study-pause').text('Pause');
+            $('#study-pause').html('<i class="fas fa-pause"></i>');
+            //$('#break-pause').text('Pause');
+            $('#break-pause').html('<i class="fas fa-pause"></i>');
+            isPaused = false; // handle edge case where user changes settings while timer is running
+          }
+        });
+      });
+      updateStudyDetails();
+
+      // to-do list
+      // Load tasks from local storage
+      const loadTasks = () => {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        $("#taskList").empty();
+        tasks.forEach(task => addTaskToDOM(task.text, task.completed));
+        updateEmptyMessage();
+      };
+
+      const saveTasks = () => {
+        const tasks = [];
+        $("#taskList li.task-item").each(function () {
+          const text = $(this).find("span").text();
+          const completed = $(this).find("input[type='checkbox']").is(":checked");
+          tasks.push({ text, completed });
+        });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        updateEmptyMessage();
+      };
+
+      const addTaskToDOM = (taskText, completed = false) => {
+        const taskItem = $(`
+          <li class="task-item flex items-center justify-between bg-gray-100 p-3 rounded-lg">
+            <div class="flex items-center">
+              <label class="custom-checkbox">
+                <input type="checkbox" class="mr-2" ${completed ? 'checked' : ''}>
+                <span class="checkmark"></span>
+              </label>
+              <span class="ml-2">${completed ? `<s>${taskText}</s>` : taskText}</span>
+            </div>
+            <button class="text-red-400 hover:text-red-700">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </li>
+        `);
+
+        // Mark task as completed
+        taskItem.find("input[type='checkbox']").on("change", function () {
+          const textElement = $(this).closest("label").next("span");
+          const isChecked = $(this).is(":checked");
+          if (isChecked) {
+            textElement.html(`<s>${textElement.text()}</s>`);
+            $("#taskList").append(taskItem); // Move to the bottom
+          } else {
+            textElement.text(textElement.text().replace(/<s>|<\/s>/g, ''));
+          }
+          saveTasks();
+        });
+
+        // Delete task
+        taskItem.find("button").on("click", function () {
+          taskItem.remove();
+          saveTasks();
+        });
+
+        $("#taskList").append(taskItem);
+        updateEmptyMessage(); // Perbarui pesan setiap kali tugas ditambahkan
+      };
+
+      const updateEmptyMessage = () => {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const emptyMessage = $("#emptyMessage");
+        if (tasks.length === 0) {
+          emptyMessage.show();
+        } else {
+          emptyMessage.hide();
+        }
+      };
+
+      // Add new task
+      $("#addTaskBtn").on("click", function() {
+        const taskText = $("#taskInput").val().trim();
+        if (taskText) {
+          addTaskToDOM(taskText);
+          $("#taskInput").val("");
+          saveTasks();
+        }
+      });
+
+      // Handle "Enter" key for adding tasks
+      $("#taskInput").on("keypress", function(e) {
+        if (e.key === "Enter") {
+          $("#addTaskBtn").click();
+        }
+      });
+
+      loadTasks();
+    });
+  </script>
+</body>
+</html>
